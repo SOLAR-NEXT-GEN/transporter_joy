@@ -78,7 +78,7 @@ class ManiControlServer(Node):
             self.current_states = [int(msg.data[0]), int(msg.data[1])]
             self.flex_sensors = [int(msg.data[2]), int(msg.data[3])]
 
-            print(f'Current states: FL={self.current_states[0]}, BL={self.current_states[1]}')
+            # print(f'Current states: FL={self.current_states[0]}, BL={self.current_states[1]}')
             
             # Log state changes for debugging
             if old_states != self.current_states:

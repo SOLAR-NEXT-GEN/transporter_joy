@@ -17,7 +17,7 @@ class TransporterJoy(Node):
         self.twist_pub = self.create_publisher(Twist, 'cmd_vel', 10)
         
         # Create publisher for cmd_hinge topic
-        self.hinge_pub = self.create_publisher(Float64MultiArray, '/cmd_hinge', 10)
+        # self.hinge_pub = self.create_publisher(Float64MultiArray, '/cmd_hinge', 10)
         
         # Create subscriber for joy topic
         self.joy_sub = self.create_subscription(
@@ -44,7 +44,7 @@ class TransporterJoy(Node):
         self.get_logger().info(f'Linear velocity: {self.LINEAR_VEL} m/s')
         self.get_logger().info(f'Angular velocity: {self.ANGULAR_VEL} rad/s')
         self.get_logger().info('Listening for joystick input on /joy topic...')
-        self.get_logger().info('Button 1: Down command [-1,-1], Button 3: Up command [1,1]')
+        # self.get_logger().info('Button 1: Down command [-1,-1], Button 3: Up command [1,1]')
         self.get_logger().info('Not pressed: [0,0]')
     
     def joy_callback(self, msg):
@@ -79,7 +79,7 @@ class TransporterJoy(Node):
             self.twist_pub.publish(self.twist_msg)
             
             # Handle button presses for hinge control
-            self.handle_button_presses(msg.buttons)
+            # self.handle_button_presses(msg.buttons)
             
             # Log current velocities (optional - comment out if too verbose)
             if self.twist_msg.linear.x != 0.0 or self.twist_msg.angular.z != 0.0:
@@ -95,6 +95,8 @@ class TransporterJoy(Node):
     
     def handle_button_presses(self, buttons):
         """Handle button presses for direct hinge command publishing"""
+
+        return
         
         # Check current button states
         button1_pressed = buttons[1]  # down
@@ -126,6 +128,7 @@ class TransporterJoy(Node):
     
     def publish_hinge_cmd(self):
         """Publish current hinge command at 10 Hz"""
+        return
         hinge_msg = Float64MultiArray()
         hinge_msg.data = self.current_hinge_cmd
         self.hinge_pub.publish(hinge_msg)

@@ -128,18 +128,27 @@ class TryManiControl(Node):
         except Exception as e:
             self.get_logger().error(f'DOWN service call failed: {str(e)}')
 
-    def up_service_callback(self, future):
-        """Handle UP service response"""
-        try:
-            response = future.result()
-            if response.success:
-                self.get_logger().info(f'UP SUCCESS: {response.message}')
-                self.get_logger().info('🚶 WALK - Robot is now walking!')
-                self.is_walking = True
-            else:
-                self.get_logger().error(f'UP FAILED: {response.message}')
-        except Exception as e:
-            self.get_logger().error(f'UP service callback failed: {str(e)}')
+def up_service_callback(self, future):
+    """Handle UP service response - just like TryManiControl"""
+    try:
+        response = future.result()
+        if response.success:
+            self.get_logger().info(f'UP SUCCESS: {response.message}')
+            # Wait for UP motion to complete before starting movement
+            self.create_timer(2.0, self.start_walking_delayed, one_shot=True)
+        else:
+            self.get_logger().error(f'UP FAILED: {response.message}')
+            self.state = 'READY'
+    except Exception as e:
+        self.get_logger().error(f'UP service callback failed: {str(e)}')
+        self.state = 'READY'
+    
+def start_walking_delayed(self):
+    """Start walking after UP physically completes"""
+    self.get_logger().info('🚶 WALK - Robot is now walking!')
+    self.call_pp(True)
+    self.is_walking = True
+    self.state = 'WALKING'
 
     def down_service_callback(self, future):
         """Handle DOWN service response"""

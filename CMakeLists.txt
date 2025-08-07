@@ -30,7 +30,6 @@ install(PROGRAMS
   scripts/dummy_script.py
   scripts/joy.py
   scripts/mani_control.py
-  scripts/mani_test_state.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

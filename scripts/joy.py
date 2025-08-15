@@ -29,7 +29,9 @@ class TransporterJoy(Node):
         
         # Initialize Twist message
         self.twist_msg = Twist()
-        
+
+        self.joy_msg = Joy()
+
         # Button state tracking for debouncing
         self.prev_button1 = False  # down
         self.prev_button3 = False  # up
@@ -38,7 +40,7 @@ class TransporterJoy(Node):
         self.current_hinge_cmd = [0.0, 0.0]
         
         # Timer for continuous publishing of hinge commands
-        self.hinge_timer = self.create_timer(0.1, self.publish_hinge_cmd)  # 10 Hz
+        self.hinge_timer = self.create_timer(0.01, self.publish_hinge_cmd)  # 10 Hz
         
         self.get_logger().info('Transporter Joy node initialized')
         self.get_logger().info(f'Linear velocity: {self.LINEAR_VEL} m/s')
@@ -48,51 +50,8 @@ class TransporterJoy(Node):
         self.get_logger().info('Not pressed: [0,0]')
     
     def joy_callback(self, msg):
-        """
-        Process joystick input and publish Twist messages
-        Handle button presses for direct hinge command publishing
-        """
-        
-        # Reset twist message
-        self.twist_msg.linear.x = 0.0
-        self.twist_msg.linear.y = 0.0
-        self.twist_msg.linear.z = 0.0
-        self.twist_msg.angular.x = 0.0
-        self.twist_msg.angular.y = 0.0
-        self.twist_msg.angular.z = 0.0
-        
-        # Check if we have enough axes and buttons
-        if len(msg.axes) > 7 and len(msg.buttons) > 3:
-            # Process linear velocity (axis 7)
-            if msg.axes[7] > 0:
-                self.twist_msg.linear.x = self.LINEAR_VEL
-            elif msg.axes[7] < 0:
-                self.twist_msg.linear.x = -self.LINEAR_VEL
-            
-            # Process angular velocity (axis 6)
-            if msg.axes[6] > 0:
-                self.twist_msg.angular.z = self.ANGULAR_VEL
-            elif msg.axes[6] < 0:
-                self.twist_msg.angular.z = -self.ANGULAR_VEL
-            
-            # Publish the twist message
-            self.twist_pub.publish(self.twist_msg)
-            
-            # Handle button presses for hinge control
-            # self.handle_button_presses(msg.buttons)
-            
-            # Log current velocities (optional - comment out if too verbose)
-            if self.twist_msg.linear.x != 0.0 or self.twist_msg.angular.z != 0.0:
-                self.get_logger().debug(
-                    f'Publishing: Vx={self.twist_msg.linear.x:.4f} m/s, '
-                    f'Wz={self.twist_msg.angular.z:.4f} rad/s'
-                )
-        else:
-            self.get_logger().warn(
-                f'Not enough axes or buttons in Joy message. '
-                f'Expected at least 8 axes and 4 buttons, got {len(msg.axes)} axes and {len(msg.buttons)} buttons'
-            )
-    
+        self.joy_msg = msg
+
     def handle_button_presses(self, buttons):
         """Handle button presses for direct hinge command publishing"""
 
@@ -127,11 +86,53 @@ class TransporterJoy(Node):
         self.prev_button3 = button3_pressed
     
     def publish_hinge_cmd(self):
-        """Publish current hinge command at 10 Hz"""
-        return
-        hinge_msg = Float64MultiArray()
-        hinge_msg.data = self.current_hinge_cmd
-        self.hinge_pub.publish(hinge_msg)
+        """
+        Process joystick input and publish Twist messages
+        Handle button presses for direct hinge command publishing
+        """
+        
+        # Reset twist message
+        self.twist_msg.linear.x = 0.0
+        self.twist_msg.linear.y = 0.0
+        self.twist_msg.linear.z = 0.0
+        self.twist_msg.angular.x = 0.0
+        self.twist_msg.angular.y = 0.0
+        self.twist_msg.angular.z = 0.0
+        
+        # Check if we have enough axes and buttons
+        if len(self.joy_msg.axes) > 7 and len(self.joy_msg.buttons) > 3:
+            # Process linear velocity (axis 7)
+            if self.joy_msg.axes[7] > 0:
+                self.twist_msg.linear.x = self.LINEAR_VEL
+            elif self.joy_msg.axes[7] < 0:
+                self.twist_msg.linear.x = -self.LINEAR_VEL
+            
+            # Process angular velocity (axis 6)
+            if self.joy_msg.axes[6] > 0:
+                self.twist_msg.angular.z = self.ANGULAR_VEL
+            elif self.joy_msg.axes[6] < 0:
+                self.twist_msg.angular.z = -self.ANGULAR_VEL
+            
+            # Publish the twist message
+            self.twist_pub.publish(self.twist_msg)
+            
+            # Handle button presses for hinge control
+            # self.handle_button_presses(msg.buttons)
+            
+            # Log current velocities (optional - comment out if too verbose)
+            if self.twist_msg.linear.x != 0.0 or self.twist_msg.angular.z != 0.0:
+                self.get_logger().debug(
+                    f'Publishing: Vx={self.twist_msg.linear.x:.4f} m/s, '
+                    f'Wz={self.twist_msg.angular.z:.4f} rad/s'
+                )
+        else:
+            self.get_logger().warn(
+                f'Not enough axes or buttons in Joy message. '
+                f'Expected at least 8 axes and 4 buttons, got {len(self.joy_msg.axes)} axes and {len(self.joy_msg.buttons)} buttons'
+            )
+        # hinge_msg = Float64MultiArray()
+        # hinge_msg.data = self.current_hinge_cmd
+        # self.hinge_pub.publish(hinge_msg)
         
         # Debug log (comment out if too verbose)
         # self.get_logger().debug(f'Publishing hinge command: {self.current_hinge_cmd}')
